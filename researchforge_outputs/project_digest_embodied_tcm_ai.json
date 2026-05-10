@@ -1,0 +1,49 @@
+{
+  "project_name": "Embodied-TCM-AI",
+  "project_path": "D:\\ZYY Project\\Embodied-TCM-AI",
+  "readme_files": [
+    "README.md"
+  ],
+  "docs_files": [
+    "docs\\WebSocket_Realtime_Demo_Report.md"
+  ],
+  "evidence_files": [
+    "docs\\websocket_demo_evidence.json"
+  ],
+  "test_files": [],
+  "detected_modules": [
+    "digital_twin_agent",
+    "models",
+    "motion_compliance_agent",
+    "orchestrator",
+    "tcm_cognition_agent",
+    "utils",
+    "visual_perception_agent"
+  ],
+  "detected_apis": [
+    "POST /api/acupoint",
+    "GET /api/acupoint",
+    "GET /api/acupoint/{acupoint_id}",
+    "GET /api/kg/acupoint/{name}",
+    "GET /api/kg/techniques",
+    "GET /api/kg/meridians",
+    "POST /api/massage/execute",
+    "GET /api/massage/execution/{execution_id}",
+    "GET /api/massage/stream/{execution_id}",
+    "GET /health",
+    "GET /"
+  ],
+  "detected_ports": [
+    8016
+  ],
+  "git_commit": "73c3717",
+  "git_branch": "master",
+  "summary": "# Embodied-TCM-AI - 具身机械臂智能控制系统\n> 中医具身智能：知识图谱增强型多Agent机械臂推拿系统\n## 🎯 项目定位\n- **目标**：高质量SCI论文 + 发明专利\n- **方向**：具身智能 + 中医推拿 + 多Agent协作",
+  "limitations": [
+    "无法自动判断代码实际运行正确性（需要执行验证）",
+    "无法自动判断 SCI / 专利新颖性（需要领域专家）",
+    "无法自动判断真实机械臂硬件可用性（需要实际部署）",
+    "模块功能描述依赖启发式规则，可能误判"
+  ],
+  "scan_errors": []
+}

@@ -1,11 +1,10 @@
-"""ResearchForge - 科研自动化多智能体系统主入口"""
+﻿"""ResearchForge - 科研自动化多智能体系统主入口"""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import sys
 
-# 确保 UTF-8 输出
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 from app.api.routes import router
@@ -18,7 +17,7 @@ logger.add(sys.stderr, format="<level>{time:HH:mm:ss}</level> | <level>{level}</
 
 app = FastAPI(
     title="ResearchForge",
-    description="科研自动化多智能体系统 — 假设生成 → 实验设计 → 仿真验证 → 迭代修正",
+    description="科研自动化多智能体系统 — 假设生成 + 实验设计 + 专利验证 + 流程优化",
     version="0.1.0",
 )
 
@@ -30,12 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 全局组件
 hypothesis_engine = HypothesisEngine()
 tool_orchestrator = ToolChainOrchestrator()
 research_agent = ResearchAgent(hypothesis_engine=hypothesis_engine, tool_orchestrator=tool_orchestrator)
 
 app.include_router(router)
+
 
 @app.get("/health")
 async def health():

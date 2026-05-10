@@ -1,0 +1,180 @@
+{
+  "test_timestamp": "2026-05-10T00:02:05.278760",
+  "full_system_score": 0.7492,
+  "module_contributions": {
+    "HypothesisEngine": 0.0744,
+    "DoEModule": 0.0426,
+    "ToolOrchestrator": 0.0538,
+    "KnowledgeGraph": 0.0321,
+    "FRE": 0.0358
+  },
+  "sorted_contributions": [
+    [
+      "HypothesisEngine",
+      0.0744
+    ],
+    [
+      "ToolOrchestrator",
+      0.0538
+    ],
+    [
+      "DoEModule",
+      0.0426
+    ],
+    [
+      "FRE",
+      0.0358
+    ],
+    [
+      "KnowledgeGraph",
+      0.0321
+    ]
+  ],
+  "conclusion": "消融实验完成。全系统综合得分 0.7492。贡献度最高模块: HypothesisEngine (贡献 0.0744)，贡献度最低模块: KnowledgeGraph (贡献 0.0321)。建议优先优化贡献度高的模块以提升整体性能。",
+  "recommendations": [
+    "[高优先级] HypothesisEngine: 假设引擎贡献度最高，建议: (1)增强LLM提示工程 (2)引入更多先验知识约束 (3)优化假设质量评分算法",
+    "[高优先级] ToolOrchestrator: 工具编排器重要，建议: (1)增加工具超时重试 (2)优化依赖解析 (3)支持并行执行"
+  ],
+  "ablation_details": [
+    {
+      "module": "HypothesisEngine",
+      "metrics": {
+        "hypothesis_quality_novelty": 0.5288,
+        "hypothesis_quality_verifiability": 0.6066,
+        "hypothesis_quality_effect_size": 0.5376,
+        "doe_efficiency_optimal_runs": 29.104,
+        "doe_efficiency_cost_aud": 5352.4563,
+        "end_to_end_loop_hours": 53.7368,
+        "retrieval_accuracy_precision": 0.8288,
+        "retrieval_accuracy_recall": 0.883,
+        "tool_success_rate": 0.8561,
+        "literature_coverage": 0.8022
+      },
+      "delta_vs_full": {
+        "hypothesis_quality_novelty": -28.14,
+        "hypothesis_quality_verifiability": -26.46,
+        "hypothesis_quality_effect_size": -26.34,
+        "doe_efficiency_optimal_runs": -0.0,
+        "doe_efficiency_cost_aud": -0.0,
+        "end_to_end_loop_hours": -10.08,
+        "retrieval_accuracy_precision": 0.0,
+        "retrieval_accuracy_recall": 0.0,
+        "tool_success_rate": -8.77,
+        "literature_coverage": 0.0
+      },
+      "interpretation": "假设引擎贡献度0.074，主要影响假设质量指标。受影响最大指标: hypothesis_quality_novelty (-28.1%)"
+    },
+    {
+      "module": "DoEModule",
+      "metrics": {
+        "hypothesis_quality_novelty": 0.7088,
+        "hypothesis_quality_verifiability": 0.6696,
+        "hypothesis_quality_effect_size": 0.554,
+        "doe_efficiency_optimal_runs": 34.6305,
+        "doe_efficiency_cost_aud": 5352.4563,
+        "end_to_end_loop_hours": 60.4585,
+        "retrieval_accuracy_precision": 0.8288,
+        "retrieval_accuracy_recall": 0.883,
+        "tool_success_rate": 0.9384,
+        "literature_coverage": 0.8022
+      },
+      "delta_vs_full": {
+        "hypothesis_quality_novelty": -3.68,
+        "hypothesis_quality_verifiability": -18.83,
+        "hypothesis_quality_effect_size": -24.09,
+        "doe_efficiency_optimal_runs": -18.99,
+        "doe_efficiency_cost_aud": -0.0,
+        "end_to_end_loop_hours": -23.85,
+        "retrieval_accuracy_precision": 0.0,
+        "retrieval_accuracy_recall": 0.0,
+        "tool_success_rate": 0.0,
+        "literature_coverage": 0.0
+      },
+      "interpretation": "DoE模块贡献度0.043，主要影响实验设计效率和闭环时间。受影响最大指标: hypothesis_quality_effect_size (-24.1%)"
+    },
+    {
+      "module": "ToolOrchestrator",
+      "metrics": {
+        "hypothesis_quality_novelty": 0.7072,
+        "hypothesis_quality_verifiability": 0.7627,
+        "hypothesis_quality_effect_size": 0.7298,
+        "doe_efficiency_optimal_runs": 29.104,
+        "doe_efficiency_cost_aud": 5352.4563,
+        "end_to_end_loop_hours": 55.8651,
+        "retrieval_accuracy_precision": 0.8288,
+        "retrieval_accuracy_recall": 0.883,
+        "tool_success_rate": 0.5579,
+        "literature_coverage": 0.8022
+      },
+      "delta_vs_full": {
+        "hypothesis_quality_novelty": -3.9,
+        "hypothesis_quality_verifiability": -7.54,
+        "hypothesis_quality_effect_size": 0.0,
+        "doe_efficiency_optimal_runs": -0.0,
+        "doe_efficiency_cost_aud": -0.0,
+        "end_to_end_loop_hours": -14.44,
+        "retrieval_accuracy_precision": 0.0,
+        "retrieval_accuracy_recall": 0.0,
+        "tool_success_rate": -40.55,
+        "literature_coverage": 0.0
+      },
+      "interpretation": "工具编排器贡献度0.054，主要影响工具成功率和执行效率。受影响最大指标: tool_success_rate (-40.5%)"
+    },
+    {
+      "module": "KnowledgeGraph",
+      "metrics": {
+        "hypothesis_quality_novelty": 0.6288,
+        "hypothesis_quality_verifiability": 0.712,
+        "hypothesis_quality_effect_size": 0.6676,
+        "doe_efficiency_optimal_runs": 29.104,
+        "doe_efficiency_cost_aud": 5674.8451,
+        "end_to_end_loop_hours": 48.8162,
+        "retrieval_accuracy_precision": 0.8288,
+        "retrieval_accuracy_recall": 0.883,
+        "tool_success_rate": 0.9384,
+        "literature_coverage": 0.8022
+      },
+      "delta_vs_full": {
+        "hypothesis_quality_novelty": -14.55,
+        "hypothesis_quality_verifiability": -13.69,
+        "hypothesis_quality_effect_size": -8.52,
+        "doe_efficiency_optimal_runs": -0.0,
+        "doe_efficiency_cost_aud": -6.02,
+        "end_to_end_loop_hours": -0.0,
+        "retrieval_accuracy_precision": 0.0,
+        "retrieval_accuracy_recall": 0.0,
+        "tool_success_rate": 0.0,
+        "literature_coverage": 0.0
+      },
+      "interpretation": "知识图谱贡献度0.032，主要影响假设创新性和约束检查。受影响最大指标: hypothesis_quality_novelty (-14.6%)"
+    },
+    {
+      "module": "FRE",
+      "metrics": {
+        "hypothesis_quality_novelty": 0.6311,
+        "hypothesis_quality_verifiability": 0.6902,
+        "hypothesis_quality_effect_size": 0.6485,
+        "doe_efficiency_optimal_runs": 29.104,
+        "doe_efficiency_cost_aud": 5352.4563,
+        "end_to_end_loop_hours": 52.2235,
+        "retrieval_accuracy_precision": 0.8288,
+        "retrieval_accuracy_recall": 0.883,
+        "tool_success_rate": 0.9384,
+        "literature_coverage": 0.8022
+      },
+      "delta_vs_full": {
+        "hypothesis_quality_novelty": -14.24,
+        "hypothesis_quality_verifiability": -16.33,
+        "hypothesis_quality_effect_size": -11.14,
+        "doe_efficiency_optimal_runs": -0.0,
+        "doe_efficiency_cost_aud": -0.0,
+        "end_to_end_loop_hours": -6.98,
+        "retrieval_accuracy_precision": 0.0,
+        "retrieval_accuracy_recall": 0.0,
+        "tool_success_rate": 0.0,
+        "literature_coverage": 0.0
+      },
+      "interpretation": "FRE反馈引擎贡献度0.036，主要影响假设迭代优化能力。受影响最大指标: hypothesis_quality_verifiability (-16.3%)"
+    }
+  ]
+}

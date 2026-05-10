@@ -1,0 +1,47 @@
+{
+  "project_name": "AgentShield_V3",
+  "project_path": "D:\\ZYY Project\\AgentShield_V3",
+  "readme_files": [
+    "README.md"
+  ],
+  "docs_files": [
+    "docs\\AgentShield_V3_Action_Repair_Report.md"
+  ],
+  "evidence_files": [
+    "benchmark\\benchmark_fixed.json",
+    "benchmark\\benchmark_report.json",
+    "benchmark\\benchmark_v3_standard.json",
+    "benchmark\\test_cases\\test_cases.json",
+    "benchmark\\test_cases\\test_cases_100.json",
+    "benchmark\\test_cases\\test_cases_extended.json",
+    "benchmark\\test_cases\\test_cases_v3_standard.json",
+    "benchmark\\confusion_matrix_v3.json"
+  ],
+  "test_files": [],
+  "detected_modules": [
+    "agents",
+    "api",
+    "shield"
+  ],
+  "detected_apis": [
+    "POST /process_call",
+    "GET /status/{session_id}",
+    "POST /fork_branch",
+    "GET /export_chain/{session_id}",
+    "GET /behavior_graph/{session_id}",
+    "POST /simulate_steps"
+  ],
+  "detected_ports": [
+    8011
+  ],
+  "git_commit": "bf3bf42",
+  "git_branch": "main",
+  "summary": "# AgentShield V3\n**行为链审计与多智能体风险治理系统**\nV3 是 AgentShield 的第三代产品，聚焦于**多智能体行为链路**的实时审计、风险溯源与反事实推演。\n## 核心定位\n> V1 管 AI 说什么 → V2 管 Agent 工具做什么 → **V3 管多 Agent 行为链为什么这样做**",
+  "limitations": [
+    "无法自动判断代码实际运行正确性（需要执行验证）",
+    "无法自动判断 SCI / 专利新颖性（需要领域专家）",
+    "无法自动判断真实机械臂硬件可用性（需要实际部署）",
+    "模块功能描述依赖启发式规则，可能误判"
+  ],
+  "scan_errors": []
+}
