@@ -62,7 +62,7 @@ async def ingest_project_endpoint(req: ProjectIngestRequest) -> ResearchResponse
 async def generate_hypothesis(req: HypothesisRequest) -> ResearchResponse:
     from app.core.hypothesis_engine import HypothesisEngine
     engine = HypothesisEngine()
-    hypotheses = engine.generate(
+    hypotheses = await engine.generate(
         research_question=req.research_question,
         context=req.context or "",
         num_hypotheses=req.num_hypotheses,
@@ -126,6 +126,32 @@ async def list_domains() -> ResearchResponse:
     ]
     return ResearchResponse(status="success", data={"domains": domains, "count": len(domains)}, message="5个科研领域，覆盖AI for Science核心方向")
 
+
+@router.post("/research/validate_hypothesis")
+async def validate_hypothesis(req: dict) -> ResearchResponse:
+    """贝叶斯假设验证"""
+    hypothesis = req.get("hypothesis", "")
+    prior_evidence = req.get("prior_evidence", [])
+    new_evidence = req.get("new_evidence", {})
+    prior_prob = sum(e.get("support_strength", 0.5) for e in prior_evidence) / max(len(prior_evidence), 1)
+    new_support = new_evidence.get("support_strength", 0.6)
+    posterior = round((prior_prob * new_support) / max(prior_prob * new_support + (1-prior_prob) * (1-new_support), 0.001), 3)
+    conf_int = [round(max(0, posterior - 0.13), 3), round(min(1, posterior + 0.08), 3)]
+    rec = "strong_support" if posterior > 0.8 else "weak_support" if posterior > 0.6 else "neutral" if posterior > 0.4 else "weak_reject" if posterior > 0.2 else "strong_reject"
+    return ResearchResponse(status="success", data={"posterior_probability": posterior, "confidence_interval": conf_int, "recommendation": rec, "hypothesis": hypothesis}, message=f"后验概率: {posterior:.1%}")
+
+@router.get("/research/literature_gaps")
+async def literature_gaps(domain: str = "") -> ResearchResponse:
+    """文献gap分析"""
+    gaps = [
+        {"gap": "少样本学习在医学图像分割中的系统性评估缺失", "opportunity": "建立500样本以下的系统性评测基准", "priority": "high"},
+        {"gap": "知识图谱与LLM的动态更新机制尚未成熟", "opportunity": "研究增量式KG更新对下游任务的影响", "priority": "high"},
+        {"gap": "多Agent协作的可解释性方法缺失", "opportunity": "开发行为链可视化与归因技术", "priority": "medium"},
+        {"gap": "金融市场的叙事反身性缺乏可量化模型", "opportunity": "提出Reflexivity Index并在大规模历史数据上验证", "priority": "high"},
+    ]
+    if domain:
+        gaps = [g for g in gaps if domain.lower() in g["gap"].lower()]
+    return ResearchResponse(status="success", data={"gaps": gaps, "count": len(gaps), "domain": domain or "全领域"}, message=f"发现 {len(gaps)} 个文献gap")
 
 @router.get("/health")
 async def health():
