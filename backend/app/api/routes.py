@@ -129,14 +129,60 @@ async def list_domains() -> ResearchResponse:
 
 @router.post("/research/validate_hypothesis")
 async def validate_hypothesis(req: dict) -> ResearchResponse:
-    """贝叶斯假设验证"""
+    """
+    贝叶斯假设验证 — 使用正确的贝叶斯更新公式。
+
+    公式 (odds form):
+        先验odds = P(H) / (1 - P(H))
+        似然比(LR) = P(E|H) / P(E|~H)
+        后验odds = 先验odds * LR
+        后验概率 = 后验odds / (1 + 后验odds)
+
+    support_strength 被映射为似然比:
+        LR = support_strength / (1 - support_strength)
+        当 support_strength = 0.5 时, LR = 1 (证据无信息量)
+        当 support_strength > 0.5 时, LR > 1 (支持假设)
+        当 support_strength < 0.5 时, LR < 1 (反对假设)
+
+    对多条prior_evidence，逐条进行贝叶斯更新 (sequential update)。
+    """
     hypothesis = req.get("hypothesis", "")
     prior_evidence = req.get("prior_evidence", [])
     new_evidence = req.get("new_evidence", {})
-    prior_prob = sum(e.get("support_strength", 0.5) for e in prior_evidence) / max(len(prior_evidence), 1)
+
+    # 初始先验: 默认0.5 (最大不确定性)
+    # 如果有prior_evidence，则取其support_strength的均值作为初始先验
+    if prior_evidence:
+        prior_prob = sum(e.get("support_strength", 0.5) for e in prior_evidence) / len(prior_evidence)
+    else:
+        prior_prob = 0.5
+
+    # 将先验概率转换为先验odds
+    prior_prob = max(0.001, min(0.999, prior_prob))  # 防止除零
+    prior_odds = prior_prob / (1 - prior_prob)
+
+    # 对prior_evidence逐条进行贝叶斯更新
+    current_odds = prior_odds
+    for evidence in prior_evidence:
+        s = max(0.001, min(0.999, evidence.get("support_strength", 0.5)))
+        lr = s / (1 - s)
+        current_odds *= lr
+
+    # 处理new_evidence
     new_support = new_evidence.get("support_strength", 0.6)
-    posterior = round((prior_prob * new_support) / max(prior_prob * new_support + (1-prior_prob) * (1-new_support), 0.001), 3)
-    conf_int = [round(max(0, posterior - 0.13), 3), round(min(1, posterior + 0.08), 3)]
+    new_support = max(0.001, min(0.999, new_support))
+    new_lr = new_support / (1 - new_support)
+    current_odds *= new_lr
+
+    # 转换回后验概率
+    posterior = round(current_odds / (1 + current_odds), 3)
+    posterior = max(0.0, min(1.0, posterior))
+
+    # 基于证据数量的置信区间估计
+    n_evidence = len(prior_evidence) + (1 if new_evidence else 0)
+    ci_width = max(0.05, 0.2 / max(n_evidence, 1) ** 0.5)
+    conf_int = [round(max(0, posterior - ci_width), 3), round(min(1, posterior + ci_width), 3)]
+
     rec = "strong_support" if posterior > 0.8 else "weak_support" if posterior > 0.6 else "neutral" if posterior > 0.4 else "weak_reject" if posterior > 0.2 else "strong_reject"
     return ResearchResponse(status="success", data={"posterior_probability": posterior, "confidence_interval": conf_int, "recommendation": rec, "hypothesis": hypothesis}, message=f"后验概率: {posterior:.1%}")
 

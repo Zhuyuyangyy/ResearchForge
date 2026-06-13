@@ -1,263 +1,142 @@
-# ResearchForge — 闭环科研自动化多智能体系统
+# ResearchForge
 
-> **SCI Innovation**: 基于 OpenClaw + ASF-BGT Framework + CrewAI + AgentShield V3 构建的科研自动化平台
->
-> 实现"读文献 → 提出假设 → 设计实验 → 仿真验证 → 迭代修正"的全流程闭环。
+**Closed-Loop Research Automation Multi-Agent System**
+
+> A multi-agent framework that implements the full academic research cycle -- literature review, hypothesis generation, experimental design, simulation verification, and iterative refinement -- as an autonomous closed loop. ResearchForge integrates structured hypothesis generation with quality scoring, Design of Experiments (DoE) optimization, FMEA risk assessment, knowledge graph constraint checking, and behavior-governed multi-agent collaboration through the AgentShield V3 audit engine.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Key Innovations](#key-innovations)
-- [System Architecture](#system-architecture)
-- [Core Components](#core-components)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Core Modules](#core-modules)
 - [API Reference](#api-reference)
-- [Modules](#modules)
-- [Configuration](#configuration)
-- [Technical Details](#technical-details)
-- [Citation](#citation)
+- [Research and Academic Context](#research-and-academic-context)
+- [Roadmap](#roadmap)
+- [License](#license)
+- [Contact](#contact)
 
 ---
 
 ## Overview
 
-ResearchForge is an academic research system that implements a **closed-loop research automation multi-agent framework**. It enables AI agents to autonomously execute the full research cycle: literature review, hypothesis generation, experimental design, simulation verification, and iterative refinement.
+Scientific research follows a recurring cycle: read prior work, formulate hypotheses, design experiments, execute and analyze, then refine based on results. While individual tools exist for literature search, statistical analysis, and writing, no existing system integrates these into a fully autonomous closed loop with formal quality control at each stage.
 
-### Core Technology Stack
+ResearchForge addresses this by implementing a multi-agent system where specialized engines handle each phase of the research cycle:
 
-| Layer | Component | Function |
-|-------|-----------|----------|
-| Behavioral Governance | ASF-BGT Framework | World + BranchTree + Simulator + CounterfactualEngine |
-| Behavioral Audit | AgentShield V3 | Multi-agent collaboration security and risk governance |
-| Agent Orchestration | CrewAI Multi-Agent Core | HGE + LCC + TCO + FRE |
-| Domain Modules | PatentMiner + LabAutomation + MaterialGen + KnowledgeGraph | Vertical domain expertise |
+1. **Hypothesis Generation Engine (HGE)** -- produces structured hypotheses with variables, relations, constraints, verification methods, and literature evidence links, scored on novelty, verifiability, effect size, and consistency.
+2. **Tool Chain Orchestrator (TCO)** -- manages execution dependencies between research tools (code execution, simulation, visualization, literature retrieval) using topological sorting.
+3. **Feedback Refinement Engine (FRE)** -- iteratively refines hypotheses based on experimental results and evaluation feedback.
+4. **Knowledge Graph Constraint Checker (LCC)** -- validates hypotheses against physics laws (energy conservation, dimensional consistency, numerical reasonableness) to prevent physically impossible or hallucinated claims.
 
-### System Positioning
-
-- **OpenClaw** = Multi-channel access + Multi-agent routing + Edge execution + Canvas visualization
-- **ResearchForge** = OpenClaw concretely implemented for the research automation scenario
+The system is further governed by **AgentShield V3**, a behavior audit engine that projects future behavior chains for multi-agent interactions and applies risk-gated governance decisions (allow, review, block).
 
 ---
 
-## Key Innovations
+## Key Features
 
-### 1. Hypothesis Engine (HGE)
+### Structured Hypothesis Generation (HGE)
 
-**Structured Hypothesis Generation** with Variable-Hypothesis-VerificationMethod three-part format:
-
-```python
-class Hypothesis:
-    id: str
-    statement: str                    # Natural language description
-    variables: List[Variable]          # independent/dependent/control/mediator/moderator
-    relations: List[str]               # e.g., ["X ↑ → Y ↓", "dose-effect relationship"]
-    constraints: List[str]             # Boundary conditions
-    quality_score: HypothesisQualityScore  # novelty/verifiability/effect_size/consistency
-    verification_methods: List[VerificationMethod]  # Statistical tests, sample sizes
-    evidence_links: List[EvidenceLink] # Literature evidence associations
-```
-
-**Quality Scoring System**:
+Generates hypotheses in a Variable-Hypothesis-VerificationMethod format with four-dimensional quality scoring:
 
 | Dimension | Weight | Description |
 |-----------|--------|-------------|
-| Novelty | 30% | How novel is the hypothesis vs. existing literature |
-| Verifiability | 30% | Can it be tested experimentally? |
-| Effect Size | 20% | Expected magnitude of the effect |
-| Consistency | 20% | Consistency with known physics laws and prior results |
+| Novelty | 30% | Distinctiveness relative to existing literature |
+| Verifiability | 30% | Experimental testability of the hypothesis |
+| Effect Size | 20% | Expected magnitude of the proposed effect |
+| Consistency | 20% | Alignment with known physics laws and prior results |
 
-### 2. DoE Optimization (Design of Experiments)
+Each hypothesis includes structured variable definitions (independent, dependent, control, mediator, moderator), relation descriptions, boundary constraints, and linked verification methods (statistical tests, sample size estimates, expected effect sizes).
 
-Integrated experimental design optimization using multiple methods:
+### Design of Experiments Optimization (DoE)
+
+Integrated experimental design with multiple methods:
 
 | Method | Use Case | Characteristics |
 |--------|----------|-----------------|
-| Orthogonal (L9/L18) | Screening | Find key factors from many candidates |
-| RSM (CCD/BBD) | Response Surface | Model nonlinear relationships |
-| LHS (Latin Hypercube) | Sampling | Maximize information coverage |
-| Taguchi | Robustness | Minimize sensitivity to noise |
+| Orthogonal (L9/L18) | Factor screening | Identify key factors from many candidates |
+| RSM (CCD/BBD) | Response surface | Model nonlinear factor-response relationships |
+| Latin Hypercube (LHS) | Space-filling sampling | Maximize information coverage |
+| Taguchi | Robust design | Minimize sensitivity to noise factors |
 | Full Factorial | Comprehensive | All factor-level combinations |
 
-```python
-class DoEFactor:
-    name: str           # Factor name
-    unit: str           # Physical unit
-    levels: List[float] # Factor levels
-    type: str           # "continuous" / "discrete"
+### FMEA Risk Assessment
 
-class DoEDesign:
-    method: DoEMethod
-    factors: List[DoEFactor]
-    design_matrix: List[Dict[str, float]]  # Experimental conditions
-    suggested_replicates: int
-```
+Knowledge-driven failure mode and effects analysis for experiment planning:
 
-### 3. FMEA Failure Mode and Effects Analysis
+- **Failure Modes**: Template-based identification per experiment type (synthesis, characterization, performance testing).
+- **Risk Priority Number (RPN)**: Severity x Occurrence x Detection scoring.
+- **Critical Item Identification**: Automatic flagging of high-risk failure modes (RPN > 100).
 
-Knowledge-driven risk assessment engine:
+### Knowledge Graph Constraint Checking (LCC)
 
-```python
-class FailureMode:
-    mode_id: str           # e.g., "FM-01-Y"
-    failure_mode: str      # What can go wrong
-    potential_effect: str  # Impact on results
-    potential_cause: str   # Root cause hypothesis
-    severity: int          # S (1-10)
-    occurrence: int        # O (1-10)
-    detection: int         # D (1-10)
-    rpn: int               # RPN = S × O × D (risk priority number)
-```
+Physics law consistency validation to prevent hallucinated hypotheses:
 
-**FMEA Templates** by experiment type:
+- **Physical Feasibility**: Checks against conservation laws (energy, mass, momentum, charge).
+- **Dimensional Consistency**: Validates unit consistency across hypothesis variables.
+- **Numerical Reasonableness**: Ensures proposed values fall within physically plausible ranges.
+
+### Multi-Agent Research Loop
 
 ```
-synthesis:
-  - FM-01-Y: 产率下降 (Temperature control deviation)
-  - FM-02-P: 纯度不达标 (Raw material contamination)
-  - FM-03-T: 粒度分布宽 (Improper ball milling parameters)
-
-characterization:
-  - FM-04-S: 样品损坏 (Poor sample preparation)
-  - FM-05-D: 仪器噪声大 (Instrument calibration issues)
-
-performance_test:
-  - FM-06-C: 容量衰减快 (Electrolyte decomposition)
-  - FM-07-E: 倍率性能差 (Kinetic bottleneck)
++------------------------------------------------------------------+
+|                   ResearchForge Research Loop                     |
++------------------------------------------------------------------+
+                                                                  |
+    +------------------+      +-------------------+      +--------v--------+
+    |  Hypothesis      |      |  Tool Chain       |      |  Feedback       |
+    |  Generation (HGE)| ---> |  Execution (TCO)  | ---> |  Refinement(FRE)|
+    +------------------+      +-------------------+      +--------+--------+
+           ^                                                      |
+           |                                                      v
+    +------+--------+      +-------------------+      +-----------+------+
+    |  Literature    |      |  Experiment       |      |  KG Constraint   |
+    |  Knowledge     | <--- |  Results          |      |  Check (LCC)     |
+    |  Graph         |      |  Analysis         |      |  Physics Laws    |
+    +----------------+      +-------------------+      +------------------+
+           ^                                                      |
+           |                                                      |
+           +------------------- Iterative Refinement --------------+
 ```
 
-### 4. Multi-Agent Collaboration Loop
+### AgentShield V3 Behavior Governance
 
-```
-+------------------------------------------------------------------------------+
-|                    ResearchForge Research Loop                                |
-+------------------------------------------------------------------------------+
+Multi-agent collaboration safety through future behavior chain risk projection:
 
-    +------------------+      +-------------------+      +--------------------+
-    |  Hypothesis      |      |  Tool Chain       |      |  Feedback          |
-    |  Generation (HGE) | ---> |  Execution (TCO)  | ---> |  Refinement (FRE)  |
-    +------------------+      +-------------------+      +--------------------+
-           ^                                                        |
-           |                                                        v
-    +------+------+      +-------------------+      +--------------------+
-    |  Literature   |      |  Experiment       |      |  KG Constraint    |
-    |  Knowledge    | <--- |  Results          |      |  Check (LCC)      |
-    |  Graph         |      |  Analysis         |      |  Physics Laws     |
-    +---------------+      +-------------------+      +--------------------+
-           ^                                                        |
-           |                                                        |
-           +----------------- Iterative Refinement -----------------+
-```
+| Risk Level | Action | Threshold |
+|------------|--------|-----------|
+| Low | ALLOW | Risk score < 0.70 |
+| Medium | REVIEW | Risk score 0.70 - 0.90 |
+| High | BLOCK | Risk score >= 0.90 |
 
-**Research Agent Core Loop (research_agent.py)**:
+The engine performs counterfactual what-if analysis using a BranchTree-based branching mechanism to evaluate the projected outcomes of blocking vs. allowing specific agent actions.
 
-```python
-async def run_task(self, task: ResearchTask) -> Dict[str, Any]:
-    # Phase 1: Hypothesis Generation
-    hypotheses = await self._generate_hypotheses(task)
+### Patent Mining
 
-    # Phase 2: Tool Chain Execution
-    tool_results = await self._execute_tools(task, hypotheses)
+Prior-art analysis across three source types (patents, papers, products) with:
 
-    # Phase 3: Feedback Refinement (FRE)
-    refined_hypotheses = await self._refine_hypotheses(task, hypotheses, tool_results)
-
-    # Phase 4: Knowledge Graph Constraint Check (LCC)
-    final_hypotheses = self._kg_constraint_check(refined_hypotheses)
-
-    return {
-        "task_id": task.task_id,
-        "status": "completed",
-        "hypotheses": [h.__dict__ for h in final_hypotheses],
-        "tool_results": tool_results,
-    }
-```
-
-### 5. V3Shield Behavior Audit Engine
-
-Multi-agent collaboration safety through **future behavior chain** risk projection:
-
-```python
-class V3ShieldEngine:
-    # Governance decision thresholds
-    ALLOW_THRESHOLD = 0.70
-    REVIEW_THRESHOLD = 0.90
-    BLOCK_THRESHOLD = 0.90
-
-    def process_tool_call(
-        self,
-        agent_id: str,
-        tool_name: str,
-        params: Dict[str, Any],
-        risk_score: float,
-        fuse_action: str,
-    ) -> Dict[str, Any]:
-        # 1. Add to behavior graph
-        node = self.behavior_graph.add_tool_call_as_node(...)
-
-        # 2. Generate future branches
-        branches = self._generate_future_branches(agent_id, tool_name, risk_score)
-
-        # 3. Governance decision
-        gate_result = self._governance_decision(risk_score, branches)
-
-        # 4. Counterfactual What-If analysis
-        if self.enable_counterfactual and risk_score >= self.risk_threshold:
-            what_if = self._counterfactual_whatif(agent_id, tool_name, risk_score, fuse_action)
-```
-
-**Governance Actions**:
-
-| Risk Level | Action | Description |
-|------------|--------|-------------|
-| < 0.70 | ALLOW | Normal execution |
-| 0.70-0.90 | REVIEW | Requires human review |
-| >= 0.90 | BLOCK | Direct blocking |
-
-### 6. Counterfactual What-If Engine
-
-BranchTree-based what-if scenario analysis for false positive/negative assessment:
-
-```python
-class WhatIfScenario:
-    scenario_id: str
-    label: str              # e.g., "假设拦截 agent_id.tool_name"
-    hypothesis: Dict         # Intervention description
-    projected_risk: float    # Risk after intervention
-    projected_outcome: Dict  # Expected outcome after block
-    comparison_with_baseline: Dict  # delta analysis
-
-# Example:
-{
-    "scenario_id": "whatif_a1b2c3d4",
-    "label": "假设拦截 agent_01.send_email",
-    "projected_risk": 0.35,  # 50% reduction from 0.70
-    "projected_outcome": {
-        "blocked": True,
-        "risk_reduced_by": 0.35,
-        "agents_affected": ["agent_01"]
-    },
-    "comparison": {
-        "baseline_risk": 0.70,
-        "projected_risk_after_block": 0.35,
-        "delta": -0.35
-    }
-}
-```
+- **Triplet Prior-Art Mining**: Automatic search across patent databases, academic literature, and product catalogs.
+- **Patentable Point Identification**: Novelty, inventive step, and technical effect assessment.
+- **Technology Gap Analysis**: Automatic discovery of domain gaps with opportunity descriptions.
+- **Claim Direction**: Suggestions for patent claim structure.
 
 ---
 
-## System Architecture
+## Architecture
 
 ```
 +-------------------------------------------------------------------------------------------+
-|                              ResearchForge System Architecture                              |
+|                           ResearchForge System Architecture                                |
 +-------------------------------------------------------------------------------------------+
 
   +---------------------------+          +---------------------------+
   |     OpenClaw Gateway      |          |     External APIs          |
-  |   (Multi-channel Access)  |          |  (Semantic Scholar, ArXiv)|
+  |   (Multi-channel Access)  |          | (Semantic Scholar, ArXiv) |
   +-----------+---------------+          +------------+--------------+
               |                                        |
               v                                        v
@@ -308,440 +187,236 @@ class WhatIfScenario:
   |                                                               |
   |  +----------------+  +------------------+  +----------------+  |
   |  |  PatentMiner   |  |  LabAutomation   |  |  MaterialGen  |  |
-  |  |  - Prior-art  |  |  - DoE Engine    |  |  - Formula     |  |
-  |  |  - Gap find   |  |  - FMEA Engine   |  |    generation  |  |
-  |  |  - Claim dir. |  |  - Exp. Analysis |  |  - Manufact.  |  |
   |  +----------------+  +------------------+  +----------------+  |
-  |                                                               |
   |  +----------------+  +------------------+                     |
-  |  |  ResearchWriter|  |  KnowledgeGraph   |                     |
-  |  |  - Paper draft |  |  - TCM KG        |                     |
-  |  |  - Methods     |  |  - Causal推理    |                     |
+  |  | ResearchWriter |  | KnowledgeGraph   |                     |
   |  +----------------+  +------------------+                     |
   +---------------------------------------------------------------+
-
-+-------------------------------------------------------------------------------------------+
-|                              Data Flow Example                                             |
-+-------------------------------------------------------------------------------------------+
-
-Input: "研究新型锂离子电池正极材料的倍率性能优化"
-
-Step 1: HGE (Hypothesis Generation Engine)
-    -> 生成3个结构化假设 (变量-关系-验证方法)
-    -> 假设1: "LiCoO2掺杂Al2O3涂层可提高倍率性能"
-        Variables: [涂层厚度(自), 放电倍率(因), 温度(控)]
-        Verification: 电化学阻抗谱 + 充放电测试
-
-Step 2: DoE Optimization
-    -> 正交实验 L9(3^4) 设计
-    -> 4因子3水平: 掺杂量、涂层厚度、烧结温度、保温时间
-
-Step 3: FMEA Analysis
-    -> 识别关键失效模式: FM-06-C 容量衰减快
-    -> RPN = 8×5×3 = 120 (高风险)
-
-Step 4: TCO Tool Chain Execution
-    -> 文献检索 (Semantic Scholar API)
-    -> 实验执行 (HPC任务提交)
-    -> 数据可视化 (Matplotlib)
-
-Step 5: FRE Feedback Refinement
-    -> 基于实验结果的假设修正
-    -> 迭代优化直到收敛
-
-Step 6: LCC KG Constraint Check
-    -> 物理定律一致性检查 (能量守恒、电荷守恒)
-    -> 维度一致性检查
-    -> 数值合理性检查
-
-Output: 最终验证通过的假设 + 实验报告
 ```
 
 ---
 
-## Core Components
+## Tech Stack
 
-### 1. ResearchAgent (主智能体)
-
-The central orchestrator managing the research loop lifecycle.
-
-**File**: `backend/app/core/research_agent.py`
-
-**AgentConfig**:
-```python
-@dataclass
-class AgentConfig:
-    max_iterations: int = 10
-    confidence_threshold: float = 0.70
-    enable_counterfactual: bool = True
-    enable_kg_constraint: bool = True
-```
-
-**ResearchTask**:
-```python
-@dataclass
-class ResearchTask:
-    task_id: str
-    research_question: str
-    context: Dict[str, Any] = {}
-    status: str = "pending"  # pending, running, completed, failed
-    iterations: int = 0
-    hypotheses: List[Hypothesis] = []
-    tool_results: List[Dict] = []
-```
-
-### 2. HypothesisEngine (假设生成引擎)
-
-SCI-level structured hypothesis generation with quality scoring.
-
-**File**: `backend/app/core/hypothesis_engine.py`
-
-**Key Classes**:
-- `Variable`: independent / dependent / control / mediator / moderator
-- `Hypothesis`: Full hypothesis with structured fields
-- `HypothesisQualityScore`: novelty / verifiability / effect_size / consistency
-- `VerificationMethod`: statistical_test / sample_size_estimate / expected_effect_size
-- `KnowledgeGraphChecker`: Physics law consistency checks
-
-**HypothesisQualityEvaluator**:
-```python
-def evaluate(self, hypothesis: Hypothesis, kg: LiteratureKG = None) -> HypothesisQualityScore:
-    novelty = self._evaluate_novelty(hypothesis, kg)
-    verifiability = self._evaluate_verifiability(hypothesis)
-    effect_size = self._evaluate_effect_size(hypothesis)
-    consistency = self._evaluate_consistency(hypothesis)
-
-    overall = (novelty * 0.3 + verifiability * 0.3 + effect_size * 0.2 + consistency * 0.2)
-
-    return HypothesisQualityScore(
-        novelty=novelty,
-        verifiability=verifiability,
-        effect_size=effect_size,
-        consistency=consistency,
-        overall=round(overall, 3),
-    )
-```
-
-### 3. ToolOrchestrator (工具链编排器)
-
-Topological sorting of tool execution dependencies.
-
-**File**: `backend/app/core/tool_orchestrator.py`
-
-**State Machine**:
-```
-READY → EXECUTING → VALIDATING → FEEDBACK → REFINE → DONE
-```
-
-**ToolRegistry Available Tools**:
-- `CodeExecutor`: Python code execution
-- `Simulator`: External simulation software invocation
-- `Visualizer`: Data visualization (Matplotlib/Plotly)
-- `LiteratureRetriever`: Academic literature search
-
-**Kahn Algorithm Topological Sort**:
-```python
-def topological_sort(self, calls: list[ToolCall]) -> list[ToolCall]:
-    in_degree = {c.output_key: 0 for c in calls}
-    for call in calls:
-        for dep in call.dependencies:
-            if dep in in_degree:
-                in_degree[call.output_key] += 1
-
-    queue = [c for c in calls if in_degree[c.output_key] == 0]
-    sorted_calls = []
-
-    while queue:
-        call = queue.pop(0)
-        sorted_calls.append(call)
-        for c in calls:
-            if call.output_key in c.dependencies:
-                in_degree[c.output_key] -= 1
-                if in_degree[c.output_key] == 0:
-                    queue.append(c)
-
-    return sorted_calls
-```
-
-### 4. PatentMiner (专利挖掘Agent)
-
-Prior-art mining and patentability analysis.
-
-**File**: `backend/app/agents/patent_miner.py`
-
-**Core Functions**:
-1. **Triplet Prior-Art Mining**: Patent / Paper / Product sources
-2. **Patentable Point Identification**: Novelty, inventive step, technical effect assessment
-3. **Technology Gap Analysis**: Automatic discovery of domain gaps
-4. **Claim Direction**: Claim writing suggestions
-
-**PriorArtItem**:
-```python
-@dataclass
-class PriorArtItem:
-    type: str              # patent / paper / product
-    title: str
-    source: str
-    date: str
-    key_claims: list[str]
-    relevance_score: float  # 0.0 - 1.0
-    gap_description: str
-```
-
-**Gap Analysis Examples**:
-```python
-# Detection: experiment closed-loop
-if "experiment" in tech_desc and "闭环" in tech_desc:
-    gaps.append({
-        "gap_id": "GAP-001",
-        "category": "实验闭环",
-        "description": "Existing tech does not implement complete loop",
-        "opportunity": "自主实验闭环 + 失败模式追踪"
-    })
-
-# Detection: causal reasoning
-if "因果" in tech_desc or "causal" in tech_desc:
-    gaps.append({
-        "gap_id": "GAP-002",
-        "category": "因果推理",
-        "description": "现有系统缺乏因果约束的假设验证机制",
-        "opportunity": "反事实推理 + 因果图约束"
-    })
-```
-
-### 5. LabAutomation (实验自动化Agent)
-
-DoE optimization and FMEA risk assessment.
-
-**File**: `backend/app/agents/lab_automation.py`
-
-**DoE Methods**:
-```python
-class DoEMethod(Enum):
-    ORTHOGONAL = "orthogonal"      # L9/L18
-    RSM = "rsm"                     # Response Surface (CCD/BBD)
-    LHS = "lhs"                     # Latin Hypercube
-    TAGUCHI = "taguchi"            # Robust design
-    FULL_FACTORIAL = "full_factorial"
-
-def generate_design(
-    self,
-    method: DoEMethod,
-    factors: List[DoEFactor],
-    **kwargs,
-) -> DoEDesign:
-    if method == DoEMethod.ORTHOGONAL:
-        return self.design_orthogonal(factors, level=kwargs.get("level", 3))
-    elif method == DoEMethod.RSM:
-        return self.design_rsm(factors, center_points=kwargs.get("center_points", 5))
-    elif method == DoEMethod.LHS:
-        return self.design_lhs(factors, n_samples=kwargs.get("n_samples", 50))
-```
-
-**FMEA Engine**:
-```python
-class FMEAEngine:
-    def analyze(
-        self,
-        experiment_type: str,       # "synthesis" / "characterization" / "performance_test"
-        process_steps: List[str],
-        materials: List[str] = None,
-    ) -> FMEAResult:
-        failure_modes = []
-        for i, step in enumerate(process_steps):
-            for template in self._get_failure_templates(experiment_type):
-                fm = FailureMode(
-                    mode_id=f"FM-{i+1:02d}-{template['suffix']}",
-                    failure_mode=f"{step}过程中发生{template['mode']}",
-                    severity=template['severity'],
-                    occurrence=template['occurrence'],
-                    detection=template['detection'],
-                )
-                failure_modes.append(fm)
-        return FMEAResult(
-            failure_modes=failure_modes,
-            critical_items=[fm.mode_id for fm in failure_modes if fm.rpn > 100],
-            top_risks=sorted([(fm.mode_id, fm.rpn) for fm in failure_modes], reverse=True)[:5],
-        )
-```
-
-**Experiment Analysis Engine**:
-- Descriptive statistics (mean, std, CV%)
-- ANOVA variance analysis
-- Response surface regression fitting
-- Optimal condition solving
-
-### 6. V3ShieldEngine (行为审计引擎)
-
-AgentShield V3 for multi-agent behavior governance.
-
-**File**: `backend/app/shield/v3_engine.py`
-
-**Architecture**:
-```
-ASF-BGT Core:
-  - World: Shared state storage
-  - BranchTree: Branch evolution tree
-  - Simulator: State projection
-  - CounterfactualEngine: What-if analysis
-
-AgentShield V3:
-  - AgentBehaviorGraph: Multi-agent risk propagation
-  - V3AuditLogger: Audit trail
-  - V3Engine: Governance decisions
-```
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Backend | Python 3.10+, FastAPI, Uvicorn | API service |
+| Agent Framework | CrewAI, LangChain | Multi-agent orchestration |
+| Hypothesis Engine | Custom HGE with NumPy | Structured hypothesis generation and scoring |
+| Tool Orchestration | Custom TCO with topological sort | Dependency-aware tool execution |
+| Behavior Governance | AgentShield V3, ASF-BGT Framework | Multi-agent risk auditing |
+| External APIs | httpx (Semantic Scholar, ArXiv) | Literature retrieval |
+| Knowledge Graph | Custom KG with physics law constraints | Hypothesis validation |
+| Testing | pytest, pytest-asyncio | Test suite |
 
 ---
 
 ## Quick Start
 
-### Installation
+### Prerequisites
+
+- Python 3.10 or later
+- pip
+
+### 1. Install Dependencies
 
 ```bash
-cd backend
-pip install fastapi uvicorn httpx asyncio
+cd ResearchForge
+pip install -r requirements.txt
 ```
 
-### Start Server
+### 2. Start the Server
 
 ```bash
 cd backend
-$env:PYTHONIOENCODING="utf-8"
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8012
 ```
 
-### API Usage
+The service starts on `http://localhost:8012`.
 
-#### 1. Generate Hypotheses
+### 3. Generate Hypotheses
 
 ```bash
 curl -X POST http://localhost:8012/api/v1/research/hypothesis \
   -H "Content-Type: application/json" \
   -d '{
-    "research_question": "研究石墨烯掺杂对锂离子电池正极材料倍率性能的影响",
+    "research_question": "Investigate the effect of graphene doping on the rate performance of lithium-ion battery cathode materials",
     "context": {
-      "domain": "电池材料",
-      "prior_work": ["LiFePO4橄榄石结构", "掺杂改性研究"]
+      "domain": "Battery Materials",
+      "prior_work": ["LiFePO4 olivine structure", "Doping modification studies"]
     }
   }'
 ```
 
-**Response**:
-```json
-{
-  "hypotheses": [
-    {
-      "id": "H-001",
-      "statement": "石墨烯涂层可显著提高LiFePO4的倍率性能",
-      "variables": [
-        {"name": "石墨烯含量", "type": "independent", "unit": "wt%", "range_min": 0, "range_max": 10},
-        {"name": "放电倍率", "type": "dependent", "unit": "C"},
-        {"name": "温度", "type": "control", "unit": "°C"}
-      ],
-      "relations": ["石墨烯含量↑ → 电子电导率↑ → 倍率性能↑"],
-      "quality_score": {"novelty": 0.85, "verifiability": 0.90, "overall": 0.87},
-      "verification_methods": [
-        {"method_type": "实验", "statistical_test": "ANOVA", "sample_size_estimate": 27}
-      ]
-    }
-  ]
-}
-```
-
-#### 2. Prior-Art Mining
+### 4. Perform Prior-Art Mining
 
 ```bash
 curl -X POST http://localhost:8012/api/v1/research/priorart \
   -H "Content-Type: application/json" \
   -d '{
-    "tech_description": "基于闭环控制的自主实验系统，结合FMEA故障分析"
+    "tech_description": "Closed-loop autonomous experiment system with FMEA failure analysis"
   }'
 ```
 
-**Response**:
-```json
-{
-  "prior_art": {
-    "patents": [...],
-    "papers": [...],
-    "products": [...]
-  },
-  "gaps": [
-    {
-      "gap_id": "GAP-001",
-      "category": "实验闭环",
-      "opportunity": "自主实验闭环 + 失败模式追踪"
-    }
-  ],
-  "patentable_points": [
-    {
-      "id": "PP-001",
-      "novelty": "首次将FMEA与DoE结合用于闭环实验优化",
-      "inventive_step": "通过RPN指导实验参数迭代"
-    }
-  ]
-}
-```
-
-#### 3. Health Check
+### 5. Run Tests
 
 ```bash
-curl http://localhost:8012/api/v1/health
+cd ResearchForge
+python -m pytest tests/ -v
 ```
 
-**Response**:
-```json
-{
-  "status": "healthy",
-  "service": "ResearchForge",
-  "port": 8012,
-  "version": "1.0.0"
-}
+---
+
+## Project Structure
+
+```
+ResearchForge/
+├── backend/
+│   ├── app/
+│   │   ├── core/                         # Core engines
+│   │   │   ├── research_agent.py         # Main agent + FRE (Feedback Refinement)
+│   │   │   ├── hypothesis_engine.py      # HGE: Hypothesis generation and scoring
+│   │   │   ├── tool_orchestrator.py      # TCO: Tool chain topological orchestration
+│   │   │   ├── kg_constraints.py         # LCC: Knowledge graph constraint checking
+│   │   │   └── counterfactual.py         # Counterfactual reasoning engine
+│   │   ├── agents/                       # Domain-specific agents
+│   │   │   ├── patent_miner.py           # Prior-art mining and gap analysis
+│   │   │   ├── lab_automation.py         # DoE optimization and FMEA analysis
+│   │   │   ├── material_generator.py     # Material formula generation
+│   │   │   └── research_writer.py        # Academic writing agent
+│   │   ├── shield/                       # AgentShield V3 behavior governance
+│   │   │   ├── v3_engine.py              # Core V3 governance engine
+│   │   │   ├── v3_audit_logger.py        # Audit trail logger
+│   │   │   └── agent_behavior_graph.py   # Multi-agent risk propagation graph
+│   │   ├── kg/                           # Knowledge graph modules
+│   │   │   └── tcm_kg.py                # TCM/general knowledge graph
+│   │   ├── rag/                          # Retrieval-augmented generation
+│   │   │   └── document_search.py        # Document search module
+│   │   ├── services/
+│   │   │   └── project_ingestor.py       # Project data ingestion
+│   │   ├── api/
+│   │   │   └── routes.py                 # FastAPI route definitions
+│   │   └── main.py                       # Application entry point (port 8012)
+│   ├── eval/                             # Evaluation scripts
+│   │   ├── hypothesis_quality_eval.py    # Hypothesis quality evaluation
+│   │   ├── retrieval_eval.py             # Retrieval quality evaluation
+│   │   └── tool_use_eval.py              # Tool usage evaluation
+│   ├── experiments/                      # Experimental results
+│   │   ├── benchmark_suite.py            # Benchmark test suite
+│   │   ├── ablation_study.py             # Ablation study runner
+│   │   ├── benchmark_results.json        # Benchmark results data
+│   │   └── ablation_results.json         # Ablation study results
+│   └── test_sci.py                       # SCI-level integration tests
+├── docs/
+│   ├── EXPERIMENT_DESIGN.md              # Experiment design document
+│   ├── INNOVATION.md                     # Innovation analysis
+│   └── SCI_PAPER_OUTLINE.md              # SCI paper outline
+├── researchforge_outputs/                # Generated analysis outputs
+│   ├── AgentShield_V3_成果分析.md
+│   ├── Embodied_TCM_AI_成果分析.md
+│   ├── Evidence_Index.md
+│   ├── SCI方向矩阵.md
+│   └── 专利点矩阵.md
+├── tests/
+│   ├── conftest.py                       # Test fixtures
+│   ├── test_smoke.py                     # Smoke tests
+│   └── __init__.py
+├── docs/
+│   ├── 专利技术交底书_总稿.md              # Patent disclosure
+│   ├── 权利要求书.md                       # Patent claims
+│   └── 实施例证据索引.md                   # Implementation evidence index
+├── requirements.txt                      # Python dependencies
+├── start.sh                              # Startup script
+├── REPRODUCE.md                          # Reproduction guide
+├── SCI_FRAMEWORK.md                      # SCI paper framework
+├── 专利技术交底书.md                       # Patent technical disclosure
+└── README.md
 ```
 
-### Python Client Example
+---
+
+## Core Modules
+
+### ResearchAgent (`backend/app/core/research_agent.py`)
+
+The central orchestrator managing the research loop lifecycle. Executes the four-phase cycle:
+
+1. **Hypothesis Generation (HGE)** -- generates structured hypotheses from the research question.
+2. **Tool Chain Execution (TCO)** -- executes research tools with dependency-aware ordering.
+3. **Feedback Refinement (FRE)** -- iteratively refines hypotheses based on tool results.
+4. **Knowledge Graph Constraint Check (LCC)** -- validates hypotheses against physics laws.
+
+**Configuration:**
 
 ```python
-import httpx
-import asyncio
-
-async def main():
-    async with httpx.AsyncClient() as client:
-        # 1. Generate hypotheses
-        resp = await client.post(
-            "http://localhost:8012/api/v1/research/hypothesis",
-            json={
-                "research_question": "研究新型正极材料的倍率性能优化",
-                "context": {"domain": "电池材料"}
-            }
-        )
-        hypotheses = resp.json()["hypotheses"]
-        print(f"Generated {len(hypotheses)} hypotheses")
-
-        # 2. Prior-art mining
-        resp = await client.post(
-            "http://localhost:8012/api/v1/research/priorart",
-            json={"tech_description": "闭环实验系统 + FMEA"}
-        )
-        gaps = resp.json()["gaps"]
-        print(f"Found {len(gaps)} technology gaps")
-
-        # 3. Health check
-        resp = await client.get("http://localhost:8012/api/v1/health")
-        print(resp.json())
-
-asyncio.run(main())
+@dataclass
+class AgentConfig:
+    max_iterations: int = 10            # Maximum research iterations
+    confidence_threshold: float = 0.70  # Hypothesis confidence threshold
+    enable_counterfactual: bool = True  # Enable what-if analysis
+    enable_kg_constraint: bool = True   # Enable KG constraint checking
 ```
+
+### HypothesisEngine (`backend/app/core/hypothesis_engine.py`)
+
+Generates structured hypotheses with multi-modal support (text, image, data) and evaluates quality across four dimensions. Integrates with external literature APIs (Semantic Scholar) for evidence-grounded hypothesis generation.
+
+Key classes:
+
+- `Variable` -- independent, dependent, control, mediator, moderator types.
+- `Hypothesis` -- full structured hypothesis with variables, relations, constraints, and evidence links.
+- `HypothesisQualityScore` -- four-dimensional scoring (novelty, verifiability, effect_size, consistency).
+- `VerificationMethod` -- statistical test specifications with sample size and effect size estimates.
+- `KnowledgeGraphChecker` -- physics law consistency validation.
+
+### ToolOrchestrator (`backend/app/core/tool_orchestrator.py`)
+
+Manages tool execution dependencies using Kahn's algorithm for topological sorting. Available tools:
+
+- `CodeExecutor` -- Python code execution.
+- `Simulator` -- External simulation software invocation.
+- `Visualizer` -- Data visualization (Matplotlib/Plotly).
+- `LiteratureRetriever` -- Academic literature search.
+
+**State Machine**: READY -> EXECUTING -> VALIDATING -> FEEDBACK -> REFINE -> DONE
+
+### PatentMiner (`backend/app/agents/patent_miner.py`)
+
+Prior-art mining and patentability analysis across patent, paper, and product sources. Identifies technology gaps and generates claim direction suggestions.
+
+### LabAutomation (`backend/app/agents/lab_automation.py`)
+
+DoE optimization engine with five experimental design methods and FMEA risk assessment with template-based failure mode identification.
+
+### V3ShieldEngine (`backend/app/shield/v3_engine.py`)
+
+AgentShield V3 behavior governance engine built on the ASF-BGT Framework. Performs:
+
+- Future behavior chain risk projection.
+- Multi-agent risk propagation analysis.
+- Counterfactual what-if scenario evaluation.
+- Gated governance decisions (allow/review/block).
 
 ---
 
 ## API Reference
 
-### POST /api/v1/research/hypothesis
+### Health Check
 
-Generate structured research hypotheses.
+```
+GET /api/v1/health
+```
 
-**Request**:
+Returns service status, port, and version.
+
+### Generate Hypotheses
+
+```
+POST /api/v1/research/hypothesis
+```
+
+**Request:**
+
 ```json
 {
   "research_question": "string",
@@ -753,36 +428,41 @@ Generate structured research hypotheses.
 }
 ```
 
-**Response**:
+**Response:**
+
 ```json
 {
   "hypotheses": [
     {
-      "id": "string",
+      "id": "H-001",
       "statement": "string",
-      "variables": [...],
-      "relations": [...],
-      "constraints": [...],
+      "variables": [
+        {"name": "string", "type": "independent", "unit": "string", "range_min": 0, "range_max": 10}
+      ],
+      "relations": ["string"],
       "quality_score": {
-        "novelty": 0.0-1.0,
-        "verifiability": 0.0-1.0,
-        "effect_size": 0.0-1.0,
-        "consistency": 0.0-1.0,
-        "overall": 0.0-1.0
+        "novelty": 0.85,
+        "verifiability": 0.90,
+        "effect_size": 0.80,
+        "consistency": 0.88,
+        "overall": 0.87
       },
-      "verification_methods": [...],
-      "evidence_links": [...],
-      "iteration": 1
+      "verification_methods": [
+        {"method_type": "string", "statistical_test": "string", "sample_size_estimate": 27}
+      ]
     }
   ]
 }
 ```
 
-### POST /api/v1/research/priorart
+### Prior-Art Mining
 
-Prior-art mining and technology gap analysis.
+```
+POST /api/v1/research/priorart
+```
 
-**Request**:
+**Request:**
+
 ```json
 {
   "tech_description": "string",
@@ -790,7 +470,8 @@ Prior-art mining and technology gap analysis.
 }
 ```
 
-**Response**:
+**Response:**
+
 ```json
 {
   "prior_art": {
@@ -800,7 +481,7 @@ Prior-art mining and technology gap analysis.
   },
   "gaps": [
     {
-      "gap_id": "string",
+      "gap_id": "GAP-001",
       "category": "string",
       "description": "string",
       "opportunity": "string"
@@ -808,208 +489,63 @@ Prior-art mining and technology gap analysis.
   ],
   "patentable_points": [
     {
-      "id": "string",
+      "id": "PP-001",
       "novelty": "string",
       "inventive_step": "string",
       "technical_effect": "string",
-      "confidence": 0.0-1.0,
+      "confidence": 0.85,
       "claim_direction": [...]
     }
   ]
 }
 ```
 
-### GET /api/v1/health
-
-Service health check.
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "service": "ResearchForge",
-  "port": 8012,
-  "version": "1.0.0"
-}
-```
+Full API documentation is available at `http://localhost:8012/docs` when the service is running.
 
 ---
 
-## Modules
+## Research and Academic Context
 
-### Directory Structure
+ResearchForge is designed to support the full academic research lifecycle, with particular emphasis on materials science, battery research, and Traditional Chinese Medicine domains. The system produces structured outputs suitable for SCI paper preparation and patent filing.
 
-```
-D:\ZYY Project\ResearchForge\
-├── backend/
-│   ├── app/
-│   │   ├── core/                    # Core engines
-│   │   │   ├── research_agent.py    # Main agent + FRE
-│   │   │   ├── hypothesis_engine.py # HGE: Hypothesis generation
-│   │   │   ├── tool_orchestrator.py # TCO: Tool chain orchestration
-│   │   │   ├── kg_constraints.py    # LCC: Knowledge graph constraint check
-│   │   │   └── counterfactual.py    # Counterfactual reasoning engine
-│   │   ├── agents/                  # Domain agents
-│   │   │   ├── patent_miner.py      # Patent mining agent
-│   │   │   ├── lab_automation.py    # Experiment automation agent
-│   │   │   ├── material_gen.py      # Material generation agent
-│   │   │   └── research_writer.py   # Academic writing agent
-│   │   ├── api/
-│   │   │   └── routes.py            # FastAPI routes
-│   │   ├── shield/                  # V3 behavior audit
-│   │   │   ├── v3_engine.py         # AgentShield V3
-│   │   │   ├── v3_audit_logger.py   # Audit logger
-│   │   │   └── agent_behavior_graph.py
-│   │   ├── kg/                     # Knowledge graph
-│   │   │   └── tcm_kg.py           # TCM/general knowledge graph
-│   │   ├── rag/                    # RAG module
-│   │   │   └── document_search.py
-│   │   └── main.py                 # Service entry (port 8012)
-│   └── tests/
-│       └── test_research_agent.py
-├── docs/
-│   ├── 专利技术交底书_总稿.md
-│   ├── 权利要求书.md
-│   └── 实施例证据索引.md
-├── benchmark/
-│   ├── evaluate.py
-│   └── test_cases/
-│       └── test_cases.json
-└── README.md
-```
+### Accompanying Documents
+
+- **SCI Paper Framework**: `SCI_FRAMEWORK.md` -- structured outline for a journal submission.
+- **Patent Disclosure**: `专利技术交底书.md` -- technical disclosure for patent filing.
+- **Patent Claims**: `docs/权利要求书.md` -- formal patent claim language.
+- **Experiment Design**: `docs/EXPERIMENT_DESIGN.md` -- detailed experiment design documentation.
+- **Innovation Analysis**: `docs/INNOVATION.md` -- innovation point analysis.
 
 ### Module Status
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| PatentMiner | v1.0 (Implemented) | Prior-art mining, gap analysis, patentable point identification |
-| LabAutomation | Planning | Literature retrieval, experiment planning, HPC/instrument scheduling |
-| MaterialGen | Planning | Formula generation, manufacturability screening |
-| ResearchWriter | Planning | Academic paper drafting |
+| PatentMiner | Implemented (v1.0) | Prior-art mining, gap analysis, patentable point identification |
+| LabAutomation | In Development | DoE optimization, FMEA risk assessment, experiment analysis |
+| MaterialGen | Planned | Formula generation, manufacturability screening |
+| ResearchWriter | Planned | Academic paper drafting |
 
 ---
 
-## Configuration
+## Roadmap
 
-### Service Ports
-
-| Service | Port | Description |
-|---------|------|-------------|
-| AgentShield V3 | 8011 | Behavior audit engine |
-| **ResearchForge** | **8012** | Research automation platform |
-| MarketingCouncil | 8009 | Debate platform |
-| TCM-Mind-RAG | 8000 | TCM consultation |
-
-### AgentConfig Defaults
-
-```python
-@dataclass
-class AgentConfig:
-    max_iterations: int = 10          # Maximum research iterations
-    confidence_threshold: float = 0.70  # Hypothesis confidence threshold
-    enable_counterfactual: bool = True  # Enable what-if analysis
-    enable_kg_constraint: bool = True   # Enable KG constraint checking
-```
-
-### V3Shield Thresholds
-
-```python
-ALLOW_THRESHOLD = 0.70   # Below this: ALLOW
-REVIEW_THRESHOLD = 0.90 # Above this: REVIEW / BLOCK
-```
+- [ ] Complete LabAutomation module with full DoE and FMEA integration.
+- [ ] Implement MaterialGen for automated material formula generation.
+- [ ] Add ResearchWriter for automated academic paper drafting.
+- [ ] Integration with HPC clusters for simulation task submission.
+- [ ] Real-time experiment monitoring and adaptive DoE adjustment.
+- [ ] Cross-domain knowledge transfer between research domains.
+- [ ] Web UI for interactive research project management.
+- [ ] Support for multi-institution collaborative research workflows.
 
 ---
 
-## Technical Details
+## License
 
-### Knowledge Graph Constraint Check (LCC)
-
-Physics law consistency validation prevents "hallucinated hypotheses":
-
-```python
-class KnowledgeGraphChecker:
-    PHYSICS_LAWS = {
-        "energy_conservation": ["能量", "守恒", "conservation", "energy"],
-        "mass_conservation": ["质量", "守恒", "mass"],
-        "momentum_conservation": ["动量", "守恒", "momentum"],
-        "charge_conservation": ["电荷", "守恒", "charge"],
-    }
-
-    def check(self, hypothesis: Hypothesis) -> ConsistencyCheck:
-        for check_fn in [
-            self.check_physical_feasibility,      # Physics laws satisfied?
-            self.check_dimensional_consistency,   # Units consistent?
-            self.check_numerical_reasonableness,  # Values in reasonable range?
-        ]:
-            ok, msg = check_fn(hypothesis)
-            if not ok:
-                return ConsistencyCheck(
-                    passed=False,
-                    violation_type="physics",
-                    violation_message=msg
-                )
-        return ConsistencyCheck(passed=True)
-```
-
-### Literature Knowledge Graph (Semantic Scholar API)
-
-Automatic literature graph construction:
-
-```python
-class LiteratureKG:
-    nodes: List[KnowledgeGraphNode]   # concept, variable, finding, method
-    edges: List[KnowledgeGraphEdge]   # causes, correlates, contradicts, part_of
-    paper_metadata: Dict[str, Dict]   # ArXiv/Semantic Scholar metadata
-
-class EvidenceLink:
-    evidence_id: str
-    evidence_type: str        # empirical / theoretical / simulation
-    source: str               # paper title, database, experiment id
-    relevance_score: float    # 0-1
-    supporting: bool          # True=supports, False=contradicts
-    extract: str              # Key evidence excerpt
-```
-
-### Counterfactual What-If Analysis
-
-BranchTree-based branching for future behavior risk projection:
-
-```python
-def _generate_future_branches(
-    self, agent_id: str, tool_name: str, risk_score: float
-) -> List[Branch]:
-    if risk_score < self.risk_threshold:
-        return []
-
-    candidates = self._candidate_next_tools(agent_id, tool_name)
-    cand_labels = [f"branch{i+1}:{agent_id}->{c}" for i, c in enumerate(candidates[:self.max_branches])]
-
-    bp = self.branch_tree.fork(
-        point_label=f"future:{agent_id}.{tool_name}",
-        state_snapshot=self.world.state.data,
-        candidate_labels=cand_labels,
-        governance_results=[...],
-        step=0,
-    )
-    return bp.candidates
-```
+This project is released under the MIT License. See `LICENSE` for details.
 
 ---
 
-## Citation
+## Contact
 
-If you use ResearchForge in your research, please cite:
-
-```bibtex
-@software{researchforge,
-  title = {ResearchForge: Closed-Loop Research Automation Multi-Agent System},
-  author = {ResearchForge contributors},
-  url = {https://github.com/your-repo/ResearchForge},
-  year = {2024}
-}
-```
-
----
-
-*Corresponding project: deep-research-report.md Top10 ideas落地实现*
-*Based on: OpenClaw + ASF-BGT Framework + CrewAI + AgentShield V3*
+For questions, collaborations, or academic inquiries, please open an issue on the repository or contact the maintainers directly.

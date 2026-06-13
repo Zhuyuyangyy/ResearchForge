@@ -80,7 +80,13 @@ class BenchmarkSuiteResult:
 class SimulatedSystemData:
     """
     生成模拟对比数据
-    真实评测需要接入各系统API，此处基于公开论文数据建模
+
+    !! 重要诚信声明 !!
+    - GNoME / A-Lab / ChemCrow 的数据基于公开论文的典型性能范围建模
+    - ResearchForge 的数据为本系统自评，存在乐观偏差和利益冲突
+    - 所有系统的数据均为模拟值，不代表真实、独立的对比评测结果
+    - 本模块仅用于原型开发和趋势探索，不应用于发表论文或正式对比结论
+    - 真实评测需要：(1) 各系统在相同数据集上运行 (2) 独立第三方评估
     """
 
     # 基于公开论文的典型性能数据
@@ -122,6 +128,11 @@ class SimulatedSystemData:
             "literature_coverage": (0.88, 0.05),
         },
         BenchmarkSystem.RESEARCHFORGE: {
+            # !! 注意: 以下数据为自评模拟数据，非独立第三方评测结果 !!
+            # ResearchForge 的指标由本系统自设，存在利益冲突和乐观偏差。
+            # 这些数值应视为"目标值"而非"已验证性能"。
+            # 真实对比评测需要：(1) 在相同benchmark数据集上运行各系统
+            # (2) 由独立第三方评估 (3) 使用标准化评测协议。
             "hypothesis_quality_novelty": (0.76, 0.07),
             "hypothesis_quality_verifiability": (0.82, 0.06),
             "hypothesis_quality_effect_size": (0.74, 0.08),

@@ -124,15 +124,28 @@ class ResearchAgent:
     async def _execute_tools(
         self, task: ResearchTask, hypotheses: List[Hypothesis]
     ) -> List[Dict[str, Any]]:
-        """执行工具链"""
+        """
+        执行工具链
+
+        [MOCK实现 — 待接入真实工具执行环境]
+
+        当前返回模拟结果，仅用于开发和演示目的。
+        模拟输出不代表真实工具执行的输出，不应用于正式研究结论。
+
+        TODO: 替换为通过 tool_orchestrator 调用真实工具 (仿真/实验/检索)
+        """
         results = []
         for h in hypotheses:
-            # 简单模拟：实际通过 tool_orchestrator 调用
             results.append({
                 "hypothesis_id": h.id,
                 "tool": "simulation",
-                "output": f"Simulated result for: {h.statement[:50]}",
+                "output": (
+                    f"[MOCK/SIMULATED] 模拟结果: {h.statement[:50]}... "
+                    "注意: 此结果由模拟环境生成，非真实工具执行输出。"
+                    "需接入真实工具执行环境后方可用于正式研究。"
+                ),
                 "success": True,
+                "_disclaimer": "mock_result",
             })
         return results
 

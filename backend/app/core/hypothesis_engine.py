@@ -195,9 +195,208 @@ class KnowledgeGraphChecker:
         return True, ""
 
     def check_dimensional_consistency(self, hypothesis: Hypothesis) -> Tuple[bool, str]:
+        """
+        量纲一致性检查
+        检验假设中变量的单位是否与物理量纲匹配
+        """
+        # 常见物理量的量纲映射
+        DIMENSION_MAP = {
+            # 基本量纲
+            "长度": {"m", "cm", "mm", "km", "nm", "um", "米", "厘米", "毫米"},
+            "质量": {"kg", "g", "mg", "ug", "千克", "克", "毫克"},
+            "时间": {"s", "ms", "us", "ns", "min", "h", "秒", "毫秒", "分钟", "小时"},
+            "温度": {"K", "°C", "°F", "开尔文", "摄氏度", "华氏度"},
+            "电流": {"A", "mA", "uA", "安培", "毫安"},
+            "物质的量": {"mol", "mmol", "umol", "摩尔", "毫摩尔"},
+
+            # 导出量纲
+            "力": {"N", "kN", "mN", "牛顿", "千牛", "毫牛"},
+            "能量": {"J", "kJ", "mJ", "eV", "keV", "MeV", "焦耳", "千焦", "电子伏特"},
+            "功率": {"W", "kW", "mW", "瓦特", "千瓦", "毫瓦"},
+            "压力": {"Pa", "kPa", "MPa", "GPa", "atm", "bar", "帕斯卡", "千帕", "兆帕"},
+            "电压": {"V", "mV", "kV", "伏特", "毫伏", "千伏"},
+            "电阻": {"ohm", "Ω", "kohm", "Mohm", "欧姆", "千欧", "兆欧"},
+            "电容": {"F", "uF", "nF", "pF", "法拉", "微法", "纳法", "皮法"},
+            "频率": {"Hz", "kHz", "MHz", "GHz", "赫兹", "千赫", "兆赫", "吉赫"},
+            "浓度": {"M", "mM", "uM", "nM", "mol/L", "mol/l", "摩尔每升", "毫摩尔每升"},
+            "密度": {"kg/m3", "g/cm3", "g/ml", "千克每立方米", "克每立方厘米"},
+            "速度": {"m/s", "km/h", "cm/s", "米每秒", "千米每小时"},
+            "加速度": {"m/s2", "m/s^2", "米每二次方秒"},
+            "面积": {"m2", "cm2", "mm2", "平方米", "平方厘米", "平方毫米"},
+            "体积": {"m3", "cm3", "mm3", "L", "ml", "立方米", "立方厘米", "升", "毫升"},
+        }
+
+        # 从假设中提取变量和单位
+        variables = hypothesis.variables
+        if not variables:
+            return True, ""
+
+        # 收集所有变量的单位
+        var_units = {}
+        for var in variables:
+            if var.unit:
+                var_units[var.name] = var.unit
+
+        # 检查单位是否在已知量纲中
+        unknown_units = []
+        for var_name, unit in var_units.items():
+            found = False
+            for dim_name, valid_units in DIMENSION_MAP.items():
+                if unit in valid_units:
+                    found = True
+                    break
+            if not found:
+                unknown_units.append(f"{var_name}({unit})")
+
+        # 如果有未知单位，返回警告（但不一定是错误）
+        if unknown_units:
+            return True, f"未知单位: {', '.join(unknown_units)}"
+
+        # 检查关系描述中的量纲一致性
+        for relation in hypothesis.relations:
+            # 检查是否混合了不兼容的量纲
+            if "→" in relation or "->" in relation:
+                parts = relation.split("→") if "→" in relation else relation.split("->")
+                if len(parts) == 2:
+                    left, right = parts[0].strip(), parts[1].strip()
+                    # 简单检查：如果两边都有单位，检查是否一致
+                    # 这里简化处理，实际应该解析更复杂的表达式
+                    pass
+
         return True, ""
 
     def check_numerical_reasonableness(self, hypothesis: Hypothesis) -> Tuple[bool, str]:
+        """
+        数值合理性检查
+        检验假设中的数值是否在物理合理范围内
+        """
+        import re
+
+        # 常见物理量的合理范围
+        REASONABLE_RANGES = {
+            # 温度相关
+            "温度": {"min": 0, "max": 1e8, "unit": "K"},  # 绝对温度
+            "°C": {"min": -273.15, "max": 1e8},
+            "K": {"min": 0, "max": 1e8},
+
+            # 浓度相关
+            "浓度": {"min": 0, "max": 1e10, "unit": "mol/L"},
+            "M": {"min": 0, "max": 100},  # 摩尔浓度
+            "mM": {"min": 0, "max": 1e6},
+            "uM": {"min": 0, "max": 1e9},
+            "nM": {"min": 0, "max": 1e12},
+
+            # 百分比
+            "%": {"min": 0, "max": 100},
+            "百分比": {"min": 0, "max": 100},
+
+            # pH值
+            "pH": {"min": 0, "max": 14},
+
+            # 效率相关
+            "效率": {"min": 0, "max": 100, "unit": "%"},
+            "转化率": {"min": 0, "max": 100, "unit": "%"},
+            "产率": {"min": 0, "max": 100, "unit": "%"},
+
+            # 压力相关
+            "Pa": {"min": 0, "max": 1e15},
+            "kPa": {"min": 0, "max": 1e12},
+            "MPa": {"min": 0, "max": 1e9},
+            "GPa": {"min": 0, "max": 1e6},
+            "atm": {"min": 0, "max": 1e6},
+
+            # 电压相关
+            "V": {"min": -1e6, "max": 1e6},
+            "mV": {"min": -1e9, "max": 1e9},
+
+            # 电流相关
+            "A": {"min": -1e6, "max": 1e6},
+            "mA": {"min": -1e9, "max": 1e9},
+
+            # 时间相关
+            "s": {"min": 0, "max": 1e15},
+            "min": {"min": 0, "max": 1e12},
+            "h": {"min": 0, "max": 1e9},
+
+            # 长度相关
+            "m": {"min": 0, "max": 1e15},
+            "cm": {"min": 0, "max": 1e15},
+            "mm": {"min": 0, "max": 1e15},
+            "nm": {"min": 0, "max": 1e15},
+            "um": {"min": 0, "max": 1e15},
+
+            # 质量相关
+            "kg": {"min": 0, "max": 1e15},
+            "g": {"min": 0, "max": 1e15},
+            "mg": {"min": 0, "max": 1e15},
+
+            # 能量相关
+            "J": {"min": 0, "max": 1e15},
+            "kJ": {"min": 0, "max": 1e12},
+            "eV": {"min": 0, "max": 1e15},
+
+            # 容量相关 (电池)
+            "mAh": {"min": 0, "max": 1e6},
+            "mAh/g": {"min": 0, "max": 1e4},
+            "Wh/kg": {"min": 0, "max": 1e4},
+
+            # 循环次数
+            "次": {"min": 0, "max": 1e6},
+            "cycles": {"min": 0, "max": 1e6},
+        }
+
+        # 从假设中提取变量
+        variables = hypothesis.variables
+        statement = hypothesis.statement
+
+        # 检查变量的范围值
+        issues = []
+        for var in variables:
+            if var.range_min is not None and var.range_max is not None:
+                # 检查范围是否反转
+                if var.range_min > var.range_max:
+                    issues.append(f"变量 {var.name} 的范围反转: min({var.range_min}) > max({var.range_max})")
+
+                # 检查单位是否在合理范围内
+                if var.unit in REASONABLE_RANGES:
+                    range_info = REASONABLE_RANGES[var.unit]
+                    if var.range_min < range_info["min"]:
+                        issues.append(f"变量 {var.name} 的最小值 {var.range_min} 低于物理下限 {range_info['min']}")
+                    if var.range_max > range_info["max"]:
+                        issues.append(f"变量 {var.name} 的最大值 {var.range_max} 超过物理上限 {range_info['max']}")
+
+        # 从假设陈述中提取数值并检查
+        numbers = re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', statement)
+        for num_str in numbers:
+            try:
+                num = float(num_str)
+                # 检查极端值
+                if abs(num) > 1e15:
+                    issues.append(f"数值 {num} 可能过大")
+                elif abs(num) < 1e-15 and num != 0:
+                    issues.append(f"数值 {num} 可能过小")
+            except ValueError:
+                continue
+
+        # 检查关系描述中的数值矛盾
+        for relation in hypothesis.relations:
+            # 提取关系中的数值
+            rel_numbers = re.findall(r'[-+]?\d*\.?\d+', relation)
+            if len(rel_numbers) >= 2:
+                try:
+                    vals = [float(n) for n in rel_numbers]
+                    # 检查是否有明显的数值矛盾
+                    # 例如："效率从10%提高到200%"是不合理的
+                    for i in range(0, len(vals)-1, 2):
+                        if "提高" in relation or "增加" in relation or "上升" in relation:
+                            if vals[i+1] > vals[i] * 10:  # 提高超过10倍可能不合理
+                                issues.append(f"关系 '{relation}' 中数值变化过大")
+                except ValueError:
+                    continue
+
+        if issues:
+            return False, "; ".join(issues[:3])  # 只返回前3个问题
+
         return True, ""
 
     def check(self, hypothesis: Hypothesis) -> ConsistencyCheck:
@@ -515,14 +714,42 @@ class StructuredHypothesisGenerator:
 
     def _llm_generate_structured(self, task: str, context: dict) -> List[Dict]:
         """
-        调用LLM生成结构化假设
-        实际通过 self.llm_client 调用API
-        这里提供mock实现
-        """
-        modality = context.get("text", "")[:100]
+        [MOCK实现 — 待接入真实LLM API]
 
-        templates = [
-            {
+        当前返回硬编码的模板假设，仅用于开发和演示目的。
+        这些假设不代表针对给定研究问题的真实科学推理结果。
+
+        TODO: 替换为真实的LLM API调用 (self.llm_client)
+        """
+        import warnings
+        warnings.warn(
+            "hypothesis_engine._llm_generate_structured() 返回硬编码模板假设，"
+            "非真实LLM生成。需接入真实LLM API (如Claude/GPT) 后方可用于正式研究。",
+            stacklevel=2,
+        )
+
+        modality = context.get("text", "")[:100]
+        task_lower = task.lower() if task else ""
+
+        # 基于任务关键词选择最相关的模板领域
+        # 仍为模板，但通过关键词匹配使其与任务相关性更高
+        domain_keywords = {
+            "chemistry": ["化学", "反应", "催化", "浓度", "转化率", "合成", "chemistry", "reaction", "catalyst"],
+            "kinetics": ["动力学", "速率", "pH", "温度", "kinetics", "rate", "temperature"],
+            "materials": ["材料", "电池", "掺杂", "容量", "material", "battery", "doping", "capacity"],
+        }
+
+        # 评分每个领域与任务的相关性
+        domain_scores = {}
+        for domain, keywords in domain_keywords.items():
+            score = sum(1 for kw in keywords if kw in task_lower)
+            domain_scores[domain] = score
+
+        # 按相关性排序，优先返回最相关的模板
+        sorted_domains = sorted(domain_scores.items(), key=lambda x: x[1], reverse=True)
+
+        templates_map = {
+            "chemistry": {
                 "variables": [
                     Variable(name="X", type="independent", unit="mM", range_min=0.1, range_max=10.0,
                              operationalization="浓度测量通过HPLC"),
@@ -543,7 +770,7 @@ class StructuredHypothesisGenerator:
                     )
                 ],
             },
-            {
+            "kinetics": {
                 "variables": [
                     Variable(name="pH", type="independent", unit="", range_min=2, range_max=12,
                              operationalization="pH计校准测量"),
@@ -563,7 +790,7 @@ class StructuredHypothesisGenerator:
                     )
                 ],
             },
-            {
+            "materials": {
                 "variables": [
                     Variable(name="doping", type="independent", unit="at%", range_min=0, range_max=20,
                              operationalization="ICP-MS定量"),
@@ -583,7 +810,14 @@ class StructuredHypothesisGenerator:
                     )
                 ],
             },
-        ]
+        }
+
+        # 按相关性排序返回模板
+        templates = [templates_map[domain] for domain, _ in sorted_domains if domain in templates_map]
+
+        # 如果没有任何匹配，默认返回全部
+        if not templates:
+            templates = list(templates_map.values())
 
         return templates
 
